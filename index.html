@@ -2211,6 +2211,89 @@ function estimateCost(promptStr) {
   return { inTokens, outTokens, costUSD, costINR };
 }
 
+
+function getSectorBlueprint(sector) {
+  switch (sector) {
+    case 'd2c':
+      return {
+        name: 'D2C Consumer Brand & Logistics Flow',
+        state: `{
+  catalog: [/* 8 realistic products with MRP, images, category */],
+  cart: [],
+  coupon: '',
+  isCOD: false,
+  orderPlaced: false,
+  customer: { name: '', phone: '', address: '', city: 'Visakhapatnam' }
+}`,
+        screens: `1. Screen 1 (Catalog & Hook): High-contrast hero banner, verified Indian buyer reviews, product cards with MRP in ₹ and "Add to Cart".
+2. Screen 2 (Cart & Checkout): Slide-out cart with quantity controls, coupon input (e.g. VIZAG20), shipping calculator (Free delivery over ₹499), and COD vs UPI toggle with 20% RTO return risk warning.
+3. Screen 3 (Receipt & Tracking): Order confirmation card with 1-tap "Confirm via WhatsApp" pre-filled dispatch link and estimated delivery timeline.`,
+        mechanics: 'Add to Cart, coupon discount calculation, COD toggle, WhatsApp 1-tap order confirmation.'
+      };
+    case 'marketplace':
+      return {
+        name: 'Two-Sided Platform / Marketplace Flow',
+        state: `{
+  listings: [/* 8 realistic domain listings with ratings & prices */],
+  viewMode: 'consumer', // 'consumer' | 'provider'
+  activeCategory: 'all',
+  searchQuery: '',
+  bookings: []
+}`,
+        screens: `1. Screen 1 (Discovery & Dual View): Top view switcher ([ 🛒 Find Services ] [ 💼 Provider Dashboard ]), category pills, and instant search.
+2. Screen 2 (Listing Details & Booking): Provider card with credentials, pricing in ₹, availability schedule, and 1-tap booking modal.
+3. Screen 3 (Bookings & Provider Portal): Live booking queue, status chips (Confirmed, In Progress, Completed), and provider earnings ledger.`,
+        mechanics: 'Dual-perspective view toggle, real-time listing filter, booking dispatch, provider earnings calculation.'
+      };
+    case 'b2b':
+      return {
+        name: 'B2B Enterprise Operations & Table Flow',
+        state: `{
+  records: [/* 8-10 realistic institutional records */],
+  selectedIds: [],
+  activeStatus: 'all', // 'all' | 'pending' | 'approved' | 'escalated'
+  role: 'admin', // 'admin' | 'staff'
+  auditLog: []
+}`,
+        screens: `1. Screen 1 (Command Dashboard): Operational KPI cards (Active Deals, Pending SLA, Revenue in ₹), role preview switcher, and search.
+2. Screen 2 (Data Grid & Batch Actions): Filterable data table with multi-select checkboxes, column sorting, and batch action bar (Approve, Flag, Export CSV).
+3. Screen 3 (Audit Trail & Activity Log): Immutable timeline of operational actions with timestamps, user tags, and activity summary.`,
+        mechanics: 'Multi-row checkbox selection, batch status updates, audit log recording, CSV export.'
+      };
+    case 'retail':
+      return {
+        name: 'Offline Retail & Wholesale Distribution Flow',
+        state: `{
+  inventory: [/* 8 products with BOM, MRP, wholesale price */],
+  wholesaleDiscountPct: 25,
+  activeInvoices: []
+}`,
+        screens: `1. Screen 1 (Trade Catalog): Retail MRP vs Wholesale trader pricing calculator.
+2. Screen 2 (Order Form & Margins): Quantity tiers, distributor margin slider, and GST invoice preview.
+3. Screen 3 (Invoice Records & Dispatch): Printable tax invoice slip and inventory reorder alert badges.`,
+        mechanics: 'Wholesale tier pricing calculator, GST 18% calculation, printable invoice view.'
+      };
+    case 'saas':
+    default:
+      return {
+        name: 'SaaS / AI Wrapper & Quota Flow',
+        state: `{
+  items: [/* 8 realistic user records / tasks */],
+  usageCount: 0,
+  quotaLimit: 5,
+  isPro: false,
+  apiKey: '',
+  filter: 'all',
+  searchQuery: ''
+}`,
+        screens: `1. Screen 1 (Hook & Dashboard): Problem hook, 1-line value proposition, key metrics, and instant start button.
+2. Screen 2 (Core Action & Workspace): Interactive workspace with validation, filter pills, search input, and remaining free quota counter.
+3. Screen 3 (AI Results & Analytics): Visual output cards showing structured AI intelligence, CSV/JSON export buttons, and Pro upgrade modal when quota is exhausted.`,
+        mechanics: 'Usage quota tracking, client-side API key configuration drawer, structured JSON export, Pro upgrade modal.'
+      };
+  }
+}
+
 // Five Core Hackathon Stations
 const P = [
   // STATION 1: RESEARCH
@@ -2227,26 +2310,33 @@ const P = [
     gets: ['Pain severity score (1-10)', 'Who hurts the most', 'Why existing solutions fail in India', '3 exact interview questions for Vizag students', 'Riskiest assumption to test'],
     gen: () => {
       const ar = getAgentReachQueries();
-    const mom = getMomTestProtocol();
-    const scenMatrix = getSensitivityMatrix();
-      return 'You are a senior user researcher and internet intelligence analyst using Agent Reach methodologies to help Indian student founders stress-test ideas.\n\n' +
-ctx() + '\n\n' +
-hd('AGENT REACH MULTI-PLATFORM RECONNAISSANCE') + '\n' +
-'Execute search and intelligence checks across these platforms:\n' +
-'- Search: Run Exa web search to find recent reports: `' + ar.exa + '`\n' +
-'- Social & Sentiment: Uncover unfiltered consumer rants: `' + ar.reddit + '`\n' +
-'- Codebase & Tools: Check what has already been built on GitHub: `' + ar.github + '`\n' +
-'- Video & Vlogs: Inspect ground reality on YouTube: `' + ar.youtube + '`\n\n' +
-hd('1. PROBLEM REALITY CHECK') + '\n' +
-'- Rate the pain severity from 1 to 10 (1 = Vitamin, 10 = Severe Bleeding Pain).\n' +
-'- Is this an urgent daily priority for the target user, or just a mild inconvenience?\n' +
-'- Why does this specific problem persist in ' + city() + ' despite existing apps?\n\n' +
-hd('2. COMPETITIVE LANDSCAPE IN INDIA') + '\n' +
-'- Name 3 existing alternatives Indian users use right now (including WhatsApp groups, paper registers, Swiggy/Zomato, Excel).\n' +
-'- Create a comparison table: Alternative | What they do well | The critical gap our app exploits.\n\n' +
-hd('3. LOCAL USER INTERVIEW QUESTIONS') + '\n' +
-'- Write 3 non-leading interview questions for prospective users in ' + city() + ' (e.g., college students, local vendors, parents).\n' +
-'- Provide the single riskiest assumption that could kill this product in week 1.\n\n' +
+      const mom = getMomTestProtocol();
+      return `<role_definition>
+You are a Principal Product Researcher and Internet Intelligence Analyst operating under the Agent Reach methodology. Your mission is to stress-test Indian early-stage startup ideas before a single line of code is written.
+</role_definition>
+
+` + ctx() + `\n\n` +
+`<agent_reach_reconnaissance protocol="AGENT REACH MULTI-PLATFORM RECONNAISSANCE">
+Execute search queries across these platforms to gather unfiltered consumer and competitor evidence:
+- Exa Semantic Search: \`${ar.exa}\`
+- Reddit & X Sentiment: \`${ar.reddit}\`
+- GitHub Existing Codebases: \`${ar.github}\`
+- YouTube Consumer Reality: \`${ar.youtube}\`
+</agent_reach_reconnaissance>\n\n` +
+`<anti_fluff_reality_check>
+1. Rate the pain severity from 1 to 10 (1 = Mild Vitamin, 10 = Bleeding Urgent Necessity).
+2. Name who in ${city()} hurts the most and has actual willingness to pay.
+3. List 3 critical reasons why this problem will fail or get abandoned in India.
+4. Name 1 counter-intuitive consumer habit or offline workaround Indian users rely on today.
+</anti_fluff_reality_check>\n\n` +
+`<competitive_landscape_in_india>
+- Name 3 existing alternatives Indian users use right now (including WhatsApp groups, Excel, paper registers, Swiggy/Zomato).
+- Create a comparison table: Alternative | What works today | The fatal friction our app exploits.
+</competitive_landscape_in_india>\n\n` +
+`<mom_test_interview_protocol>
+- Generate 5 past-tense, non-leading customer discovery questions tailored to the target user (e.g. "When was the last time you dealt with X? Walk me through what happened step-by-step").
+- Define 1 concrete, dated Falsifiable Kill Criterion: "${mom.killRule}"
+</mom_test_interview_protocol>\n\n` +
 handRule('research', 220);
     },
     hand: {
@@ -2272,29 +2362,37 @@ handRule('research', 220);
     gen: () => {
       const R = good('research') ? parse('research') : {};
       const u = getUnitMath();
-      return 'You are the Venture Investment Committee for Indian early-stage startups, composed of 5 distinct Shark personas:\n' +
-'1. 💰 TIJORI: The Money Shark (obsessed with cash flow, margins, and price inelasticity).\n' +
-'2. 🛒 BAZAAR: The Customer & GTM Shark (obsessed with CAC, WhatsApp virality, tier-2 retention).\n' +
-'3. 🧮 HISAAB: The Numbers Shark (unit economics, CM1/CM2/CM3, RTO shipping losses, payment fees).\n' +
-'4. ⚔️ TAKKAR: The Rivals Shark (moats, defensibility against Swiggy/Blinkit/WhatsApp copies).\n' +
-'5. 👑 DADA: The Founder Shark (founder grit, local Visakhapatnam moat, unfair distribution).\n\n' +
-ctx() + '\n' +
+      return `<role_definition>
+You are the Venture Investment Committee for Indian early-stage startups, composed of 5 distinct Shark personas with authentic sector heuristics:
+1. 💰 TIJORI: The Money Shark (cash flow velocity, payment cycles, 90-day credit traps, and price elasticity).
+2. 🛒 BAZAAR: The Customer & GTM Shark (CAC, WhatsApp virality, tier-2 retention, and regional willingness to pay).
+3. 🧮 HISAAB: The Numbers Shark (unit economics, CM1/CM2/CM3, RTO shipping losses, payment fees).
+4. ⚔️ TAKKAR: The Rivals Shark (moats, defensibility against Swiggy/Blinkit/WhatsApp feature copies).
+5. 👑 DADA: The Founder Shark (founder grit, local unfair advantage in ${city()}, execution speed).
+</role_definition>
+
+` + ctx() + `\n` +
 list('INPUTS FROM STATION 1 RESEARCH', [
   ['Validated Problem', R.problem],
   ['Target User', R.users],
   ['Pain Score', R.pain],
   ['Competitive Gap', R.gap],
   ['Riskiest Assumption', R.risk]
-]) + '\n\n' +
-hd('LIVE UNIT ECONOMICS LEDGER (HISAAB AUDIT - ' + u.sector.toUpperCase() + ')') + '\n' +
-'- Pricing Benchmark (' + u.lbl1 + '): ₹' + u.mrp + '\n' +
-'- Direct COGS (' + u.lbl2 + '): ₹' + u.cogs + ' -> CM1: ₹' + u.cm1.toFixed(0) + ' (' + u.grossMarginPct.toFixed(1) + '%)\n' +
-'- Logistics / Variable (' + u.lbl3 + '): ₹' + u.ship + '\n' +
-'- Net Delivered CM2: ₹' + u.cm2.toFixed(0) + '\n' +
-'- Target CAC (' + u.lbl4 + '): ₹' + u.cac + ' -> Net CM3: ₹' + u.cm3.toFixed(0) + '\n' +
-'- Monthly Breakeven Target: ' + (u.breakEvenUnits !== Infinity ? '~' + u.breakEvenUnits + ' units/month' : 'NEVER (Negative unit economics!)') + '\n\n' +
-hd('THE 5-SHARK GRILLING') + '\n' +
-'Have all 5 Sharks debate this business model. Each Shark must ask 1 brutally direct question and deliver a verdict (INVEST, CONDITIONAL, or OUT) with reasoning.\n\n' +
+]) + `\n\n` +
+`<hisaab_unit_economics_audit sector="${u.sector.toUpperCase()}">
+- Benchmark Price (${u.lbl1}): ₹${u.mrp}
+- Direct COGS (${u.lbl2}): ₹${u.cogs} -> CM1 (Gross): ₹${u.cm1.toFixed(0)} (${u.grossMarginPct.toFixed(1)}%)
+- Logistics & Variable (${u.lbl3}): ₹${u.ship}
+- Net Delivered CM2: ₹${u.cm2.toFixed(0)}
+- Target CAC (${u.lbl4}): ₹${u.cac} -> Net CM3: ₹${u.cm3.toFixed(0)}
+- Monthly Breakeven Volume: ${u.breakEvenUnits !== Infinity ? '~' + u.breakEvenUnits + ' units/month' : 'NEVER (Negative unit economics!)'}
+${u.paybackMonths ? '- CAC Payback Period: ' + u.paybackMonths + ' months\n' : ''}</hisaab_unit_economics_audit>\n\n` +
+`<the_5_shark_courtroom_grilling>
+Have all 5 Sharks aggressively debate this venture. Each Shark must ask 1 brutally direct question and deliver a verdict (INVEST, CONDITIONAL, or OUT) with reasoning.
+</the_5_shark_courtroom_grilling>\n\n` +
+`<the_48hr_incumbent_attack_simulation>
+Simulate what happens when Swiggy, Blinkit, or WhatsApp launches this exact feature for free on Friday afternoon. What is your single defensible moat that keeps users from switching?
+</the_48hr_incumbent_attack_simulation>\n\n` +
 handRule('shark', 250);
     },
     hand: {
@@ -2363,34 +2461,42 @@ handRule('business', 240);
       const R = good('research') ? parse('research') : {};
       const B = good('business') ? parse('business') : {};
       const S = good('shark') ? parse('shark') : {};
-      return 'You are a lazy senior software architect and AI product strategist operating under the PONYTAIL engineering doctrine:\n' +
-'1. Does this need to be built at all? (YAGNI)\n' +
-'2. Does it already exist in the platform? Reuse it.\n' +
-'3. No abstractions nobody asked for. Shortest working diff wins.\n' +
-'4. Deletion over addition. Boring over clever.\n\n' +
-ctx() + '\n' +
+      const bp = getSectorBlueprint(val('sector') || 'saas');
+      return `<role_definition>
+You are a lazy senior software architect operating under the PONYTAIL engineering doctrine:
+1. Does this need to be built at all? (YAGNI)
+2. Does it already exist in the platform? Reuse it.
+3. No abstractions nobody asked for. Shortest working diff wins.
+4. Deletion over addition. Boring over clever.
+</role_definition>
+
+` + ctx() + `\n` +
 list('INPUTS FROM EARLIER STATIONS', [
   ['Target User', R.users || B.uses],
   ['Shark Warning', S.flaw],
   ['Revenue Model', B.model],
   ['Must Prove in V1', B.must]
-]) + '\n\n' +
-hd('PONYTAIL YAGNI AUDIT & BLOAT-SLASHING') + '\n' +
-'- Explicitly list 5 common features founders waste weeks building that MUST BE CUT from V1 (e.g., custom OAuth auth servers, native apps, heavy SQL clusters, over-engineered chatbot orchestration).\n' +
-'- For each cut feature, provide the 1-line Ponytail lightweight alternative (e.g., localStorage, static HTML, direct Gemini API call).\n\n' +
-hd('1. THE 3-SCREEN ARCHITECTURE') + '\n' +
-'Specify exactly 3 screens:\n' +
-'1. Screen 1 (Home/Hook): Problem hook, 1-line promise, primary call-to-action.\n' +
-'2. Screen 2 (Core Action): Where user completes the main task in under 60 seconds.\n' +
-'3. Screen 3 (Value & AI Result): Clean output cards showing AI intelligence and stats.\n\n' +
-hd('2. THE SINGLE KILLER AI FEATURE') + '\n' +
-'- Define ONE Gemini-powered feature that directly solves the pain.\n' +
-'- Provide the exact prompt instruction for Gemini.\n' +
-'- Give a concrete sample input and structured JSON output shape.\n\n' +
-hd('3. EDGE CASES & ACCESSIBILITY') + '\n' +
-'- Handle offline/slow 3G network states gracefully.\n' +
-'- Provide Telugu translations for all primary labels and buttons.\n' +
-'- Pre-load 8 to 10 realistic Visakhapatnam sample records so the app feels alive on first load.\n\n' +
+]) + `\n\n` +
+`<ponytail_yagni_bloat_slasher>
+- Explicitly list 5 common features founders waste weeks building that MUST BE CUT from V1 (e.g., custom OAuth auth servers, native mobile apps, heavy SQL clusters, over-engineered multi-agent loops).
+- Provide the 1-line Ponytail lightweight alternative for each (e.g., localStorage, static HTML, direct Gemini API call).
+</ponytail_yagni_bloat_slasher>\n\n` +
+`<sector_state_machine_schema>
+The V1 MVP must be driven by this exact central state machine:
+${bp.state}
+</sector_state_machine_schema>\n\n` +
+`<the_3_screen_architecture>
+${bp.screens}
+</the_3_screen_architecture>\n\n` +
+`<single_killer_ai_feature>
+- Define ONE Gemini-powered feature that directly solves the core pain.
+- Provide the exact prompt instruction for Gemini.
+- Provide a concrete sample input and structured JSON output shape.
+</single_killer_ai_feature>\n\n` +
+`<edge_cases_and_local_data>
+- Pre-load 8 to 10 realistic sample records from ${city()} colleges or businesses so the app feels alive on first open.
+- Provide a bilingual English / Telugu toggle plan for primary labels.
+</edge_cases_and_local_data>\n\n` +
 handRule('mvp', 280);
     },
     hand: {
@@ -2418,46 +2524,77 @@ handRule('mvp', 280);
       const B = good('business') ? parse('business') : {};
       const M = good('mvp') ? parse('mvp') : {};
       const S = good('shark') ? parse('shark') : {};
+      const sector = val('sector') || 'saas';
+      const bp = getSectorBlueprint(sector);
+
       const name = M.name ? hv(M.name) : (val('app') ? v('app') : 'ProductDemo');
       const promise = M.oneliner ? hv(M.oneliner) : (B.pitch ? hv(B.pitch) : 'Solve the problem in one tap');
-      const screens = (M.s1 || M.s2 || M.s3) ? 
-        ('1. ' + hv(M.s1 || 'Home Screen') + '\n2. ' + hv(M.s2 || 'Core Action Screen') + '\n3. ' + hv(M.s3 || 'AI Results & Dashboard Screen') + '\n4. About: Team, problem context, and mission.') :
-        ('1. Home: App branding, 1-line hook, key stats, and instant start button.\n2. Action: Simple form with input validation and clear labels.\n3. Results: Visual output cards with Gemini AI analysis.\n4. About: Mission, team Byte Biryani, and feedback link.');
-      const ai = M.ai ? hv(M.ai) : (val('ai') ? v('ai') : 'Summarize student feedback into actionable top 3 improvements.');
+      const aiFeature = M.ai ? hv(M.ai) : (val('ai') ? v('ai') : 'Summarize student feedback into actionable top 3 improvements.');
 
-      return 'Build a complete, polished, fully functioning responsive WEB application in a single self-contained HTML/CSS/JS file. No external dependencies, frameworks or npm packages required. It must look exceptional on mobile (360px) and laptop (1440px).\n\n' +
-'// ponytail: shortest working diff, standard browser APIs, localStorage persistence, zero bloat, mobile-first design.\n\n' +
-hd('APPLICATION OVERVIEW') + '\n' +
-'- Name: ' + name + '\n' +
-'- Headline: ' + promise + '\n' +
-'- Target Problem: ' + (R.problem ? hv(R.problem) : v('problem', '[ENTER PROBLEM]')) + '\n' +
-'- Target Solution: ' + (R.idea ? hv(R.idea) : v('idea', '[ENTER IDEA]')) + '\n' +
-'- Geography & Context: ' + place() +
-(S.moat ? '\n- Defensibility Moat: ' + hv(S.moat) : '') + '\n\n' +
-hd('SCREEN ARCHITECTURE') + '\n' +
-'Build these exact screens connected with a sleek navigation bar and smooth transitions:\n' +
-screens +
-(M.action ? '\n- Main User Action: ' + hv(M.action) : '') +
-(M.not ? '\n- Exclude (Ponytail Trim): ' + hv(M.not) : '') + '\n\n' +
-hd('INTEGRATED GEMINI AI FEATURE') + '\n' +
-'- Core AI Feature: ' + ai + '\n' +
-(M.ain ? '- Example Input: ' + hv(M.ain) + '\n' : '') +
-(M.aout ? '- Example Output Shape: ' + hv(M.aout) + '\n' : '') +
-'- Request structured JSON from Gemini and render it in elegant card components.\n' +
-'- Include interactive loading states, skeleton placeholders, and error recovery with a "Try Again" trigger.\n' +
-'- Protect keys: do not hardcode production secrets; use browser prompt or environment variable.\n\n' +
-hd('LOCAL STORAGE & PRELOADED REALISTIC DATA') + '\n' +
-'- Zero login barrier: persist user state in browser localStorage.\n' +
-(M.data ? '- Pre-load these realistic records for ' + city() + ':\n' + hv(M.data) : '- Pre-load 8 realistic sample entries from Visakhapatnam colleges so the app looks alive on first open.') + '\n' +
-'- Provide a "Clear My Data" and "Reset to Samples" button.\n\n' +
-hd('DESIGN & ACCESSIBILITY') + '\n' +
-'- Styling: Modern Google Material 3 / Clean aesthetic with high-contrast typography (Google Sans or system font).\n' +
-'- English / Telugu language toggle in header that dynamically swaps key labels and buttons.\n' +
-'- Responsive sticky navigation, tactile buttons, empty states, and WCAG 2.1 AA accessibility.\n\n' +
-hd('HOW TO DELIVER') + '\n' +
-'1. Deliver the full, working, production-grade code.\n' +
-'2. Provide a 5-step verification checklist.\n' +
-'3. List 3 high-impact ideas for Version 2.';
+      return `<system_role>
+You are an elite Senior Full-Stack Designer-Engineer and AI Systems Architect.
+Build a complete, polished, fully functioning responsive WEB application in a SINGLE self-contained HTML/CSS/JS file.
+Zero build tools, zero npm packages, and zero external JS libraries required. It must look exceptional on mobile (360px) and laptop (1440px).
+Follow the Ponytail Senior Dev doctrine: shortest working diff, native browser APIs, localStorage persistence, and mobile-first touch ergonomics.
+</system_role>
+
+<application_overview>
+- App Name: ${name}
+- Headline: ${promise}
+- Target Problem: ${R.problem ? hv(R.problem) : v('problem', '[ENTER PROBLEM]')}
+- Target Solution: ${R.idea ? hv(R.idea) : v('idea', '[ENTER IDEA]')}
+- Sector / Business Model: ${sector.toUpperCase()} (${bp.name})
+- Target Geography: ${place()}
+${S.moat ? '- Defensibility Moat: ' + hv(S.moat) + '\n' : ''}</application_overview>
+
+<sector_architecture_and_state_machine>
+Initialize and persist this exact state structure in window.localStorage:
+${bp.state}
+Core user mechanics: ${bp.mechanics}
+${M.not ? 'Exclude from V1 (Ponytail Cut): ' + hv(M.not) + '\n' : ''}</sector_architecture_and_state_machine>
+
+<screen_by_screen_specification>
+Build these 3 connected screens with smooth tab navigation and an active indicator bar:
+${(M.s1 || M.s2 || M.s3) ?
+  ('1. ' + hv(M.s1 || 'Screen 1: Discovery & Hook') + '\n2. ' + hv(M.s2 || 'Screen 2: Core Action Workspace') + '\n3. ' + hv(M.s3 || 'Screen 3: AI Intelligence Dashboard') + '\n4. About Modal / Drawer: Mission, founders Byte Biryani, and feedback link.') :
+  bp.screens
+}
+</screen_by_screen_specification>
+
+<integrated_gemini_ai_schema>
+- Core AI Feature: ${aiFeature}
+${M.ain ? '- Sample Input: ' + hv(M.ain) + '\n' : ''}${M.aout ? '- Sample JSON Output Shape: ' + hv(M.aout) + '\n' : ''}- Implementation Requirements:
+  1. API Integration: Request structured JSON via Gemini REST endpoint:
+     https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\${apiKey}
+     Request headers: Content-Type: application/json
+     Request body: { "contents": [{ "parts": [{ "text": userPrompt }] }], "generationConfig": { "response_mime_type": "application/json" } }
+  2. Offline Heuristic Simulation: If the user has not entered a Gemini API key or is offline, invoke simulateAiResponse(input) which returns realistic structured JSON cards after a 600ms simulated delay with loading skeleton state.
+  3. Security: Include a client-side API Key drawer with a "Test Key" button that stores the key only in sessionStorage or localStorage (never hardcoded in source).
+</integrated_gemini_ai_schema>
+
+<indian_market_primitives>
+- WhatsApp Viral Growth: Include a 1-tap "Share on WhatsApp" / "Confirm Order" button that generates a pre-filled encoded link (e.g., https://wa.me/?text=[encodedMessage]).
+- Rupee Formatting: All currency formatted in Indian numbering style (e.g., ₹299, ₹1,499, ₹15,000).
+- Bilingual Support: Header toggle between English and Telugu (తెలుగు) that dynamically swaps all primary buttons and titles.
+- Pre-loaded Records: Pre-load 8 realistic sample entries from ${city()} colleges/vendors so the app is alive on first launch.
+</indian_market_primitives>
+
+<embedded_in_app_self_tests>
+Include an automated self-test suite embedded directly in the script, executable via window.__runAppSelfTests() or automatically when the URL contains '?test=1':
+- Test 1: LocalStorage initializes with defaults and survives simulated reload.
+- Test 2: Form validation catches empty inputs and applies inline error styling without throwing.
+- Test 3: Screen navigation switches views cleanly and updates document title.
+- Test 4: Core action (${bp.mechanics.slice(0, 40)}) updates state and renders DOM changes.
+If '?test=1' is in the URL, display a floating green badge: "✓ 4/4 Self-Tests Passed".
+</embedded_in_app_self_tests>
+
+<negative_constraints_and_zero_truncation>
+- CRITICAL: Do NOT output placeholders, snippets, or ellipsis. Never write '// TODO', '// Add rest of code here', or '/* Add styles */'.
+- Output the 100% COMPLETE, un-truncated, copy-paste runnable file from <!doctype html> to </html>.
+- Single-File Mandate: All CSS inside one <style> block, all JS inside one <script> block.
+- Icon Mandate: Use inline SVGs or Unicode emojis only (no external CDN icon fonts).
+- Accessibility: Semantic HTML5 (<header>, <main>, <nav>, <section>, <button>), explicit label 'for' attributes, and WCAG 2.1 AA color contrast.
+</negative_constraints_and_zero_truncation>`;
     },
     hand: null,
     fixes: [

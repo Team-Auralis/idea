@@ -121,7 +121,14 @@ node "scratch/suite_6_workspaces_and_scenarios.js" # Multi-project workspaces, 3
 
 ## 📜 Changelog
 
-### v3.1.0 (Current Release)
+### v3.2.0 (Prompt Perfection Engine)
+* **XML-Framed Structural Prompt Architecture**: Encases prompts in semantic XML tags (`<system_role>`, `<sector_state_machine_schema>`, `<integrated_gemini_ai_schema>`, `<embedded_in_app_self_tests>`, `<negative_constraints_and_zero_truncation>`) to eliminate instruction degradation in LLMs.
+* **Sector-Native State Machine Blueprints**: Prompts now inject pre-architected central state schemas and screen specifications tailored to D2C, SaaS, Marketplace, B2B, and Retail sectors.
+* **Exact Gemini REST API & Offline Fallback Directives**: Enforces structured JSON output via `v1beta/models/gemini-1.5-flash:generateContent` with client-side API key drawers and instant offline simulated heuristic responses.
+* **Embedded In-App Self-Test Directives**: Directs coding agents to embed an automated self-test suite (`window.__runAppSelfTests()`) executable on boot or via `?test=1`.
+* **Zero-Truncation Contract**: Explicit negative constraints forbidding placeholders, ellipsis, `// TODO`, or `/* Add styles */`, guaranteeing 100% copy-paste runnable single-file web applications.
+
+### v3.1.0
 * **Multi-Project Workspace Switcher**: Save, switch, duplicate, and delete multiple startup ideas in browser localStorage without data collisions.
 * **3-Scenario Financial Sensitivity Engine**: Instant toggling between Base Case (nominal), Bull Case (+20% price, -20% CAC), and Stress/Bear Case (-20% price, +35% CAC) with live sensitivity table.
 * **The Mom Test Discovery Protocol & Falsifiable Kill Criteria**: Generates 5 past-tense behavioral interview questions and explicit kill criteria in Station 1 to eliminate hypothetical opinion bias.
