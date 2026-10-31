@@ -1,6 +1,10 @@
-# Idea to App Prompt Kit (Startup MVP Platform & Shark Panel Edition)
+# Idea to App Prompt Kit — Team-Auralis Edition
 
-An enterprise-grade, zero-dependency interactive startup development platform and MVP stress-testing cockpit designed for startup founders, student innovators, and hackathon teams.
+[![Team-Auralis](https://img.shields.io/badge/Engineered_by-Team--Auralis-8B5CF6?style=for-the-badge&logo=github)](https://github.com/Team-Auralis)
+[![License: MIT](https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge)](LICENSE)
+[![Zero-Dependency](https://img.shields.io/badge/Dependencies-0-EC4899?style=for-the-badge)](#)
+
+An enterprise-grade, zero-dependency interactive startup development platform and MVP stress-testing cockpit designed by **Team-Auralis** for founders, engineers, and product strategists.
 
 Runs directly in any modern browser as a standalone web application. **100% client-side, offline-capable, and zero tracking.**
 
@@ -128,4 +132,11 @@ node "scratch/suite_5_e2e_journey.js"         # Full 5-station journey & export/
 * Integrated Ponytail Bloat-Slasher MVP mode.
 
 ### v1.0.0
-* Initial release of the 5-station hackathon prompt kit.
+* Initial release of the 5-station prompt kit.
+
+---
+
+## 👥 Maintained by
+
+**Team-Auralis** — Applied AI Research, Systems Architecture & Intelligent Autonomous Tools.  
+GitHub: [https://github.com/Team-Auralis](https://github.com/Team-Auralis)
