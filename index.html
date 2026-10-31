@@ -2418,7 +2418,10 @@ handRule('shark', 250);
     gen: () => {
       const R = good('research') ? parse('research') : {};
       const S = good('shark') ? parse('shark') : {};
-      return 'You are a veteran Chief Commercial Officer and Indian pricing strategist specializing in consumer and SaaS business models.\n\n' +
+      const u = getUnitMath();
+      return '<role_definition>\n' +
+'You are a veteran Chief Commercial Officer and Indian pricing strategist specializing in consumer and enterprise business models in Tier-2/3 Indian hubs like ' + city() + '.\n' +
+'</role_definition>\n\n' +
 ctx() + '\n' +
 list('PREVIOUS STATION INTELLIGENCE', [
   ['Problem', R.problem],
@@ -2426,15 +2429,30 @@ list('PREVIOUS STATION INTELLIGENCE', [
   ['Shark Warning', S.flaw],
   ['Prioritized Fix', S.fix]
 ]) + '\n\n' +
-hd('1. VALUE CAPTURE & MONETIZATION') + '\n' +
-'- Who uses vs who pays: are users the buyers, or is this sponsored/B2B/freemium?\n' +
-'- Propose a 3-tier pricing ladder in INR (₹) tailored to student or Indian consumer wallets.\n' +
-'- How does the product achieve a 70%+ gross margin as it scales?\n\n' +
-hd('2. ZERO-DOLLAR GTM IN VISAKHAPATNAM') + '\n' +
-'- Detail a hyper-local distribution playbook to acquire the first 100 paying customers without paid ads (e.g., college campus ambassadors, WhatsApp community viral loops, offline QR table tents).\n' +
-'- What is the North Star metric to track weekly (e.g., Weekly Active Orders, 7-day retention)?\n\n' +
-hd('3. THE 60-SECOND PITCH') + '\n' +
-'- Write a high-converting 3-sentence pitch: Hook -> Concrete Value -> Irresistible Call-to-Action.\n\n' +
+'<user_vs_buyer_bifurcation>\n' +
+'- Clearly separate WHO USES the product vs WHO PAYS for the product (e.g., students use, parents/college admin pays; employees use, SMB owner pays).\n' +
+'- Is this B2C direct, B2B enterprise, campus-sponsored, or freemium?\n' +
+'</user_vs_buyer_bifurcation>\n\n' +
+'<inr_3_tier_pricing_ladder sector="' + u.sector.toUpperCase() + '">\n' +
+'- Propose a 3-tier pricing ladder in INR (₹) calibrated to Indian willingness to pay:\n' +
+'  1. Free / Discovery Tier: ₹0 (Zero friction hook, habit formation, viral loops).\n' +
+'  2. Solo / Pro Tier: ₹' + u.mrp + '/mo (The UPI micropayment sweet spot for individuals).\n' +
+'  3. Team / Institutional Tier: ₹' + (u.mrp * 6) + '/mo (For college hostels, departments, or business teams).\n' +
+'- Detail how this model maintains a ' + (u.sector === 'd2c' ? '65%+' : '75%+ Gross Margin') + ' at scale.\n' +
+'</inr_3_tier_pricing_ladder>\n\n' +
+'<zero_dollar_gtm_distribution_playbook city="' + city() + '">\n' +
+'- Detail a hyper-local distribution playbook to acquire the first 100 paying users in ' + city() + ' without paid ads:\n' +
+'  1. College campus ambassador / student union rep barter incentive.\n' +
+'  2. WhatsApp community viral forward loops with pre-filled referral messages.\n' +
+'  3. Offline guerrilla distribution (QR stickers on mess tables, canteen counter stands).\n' +
+'- Define the single North Star metric to track weekly (e.g., Weekly Active Orders, 7-day cohort retention).\n' +
+'</zero_dollar_gtm_distribution_playbook>\n\n' +
+'<the_60sec_investor_pitch>\n' +
+'- Write an irresistible 3-sentence elevator pitch:\n' +
+'  1. Hook (10s): The bleeding, undeniable problem in ' + city() + '.\n' +
+'  2. Solution & Moat (20s): What our product does in one tap and why incumbents cannot copy it.\n' +
+'  3. Traction & Ask (10s): The early metrics and what we are proving in V1.\n' +
+'</the_60sec_investor_pitch>\n\n' +
 handRule('business', 240);
     },
     hand: {
@@ -2526,6 +2544,7 @@ handRule('mvp', 280);
       const S = good('shark') ? parse('shark') : {};
       const sector = val('sector') || 'saas';
       const bp = getSectorBlueprint(sector);
+      const runner = (typeof st !== 'undefined' && st.targetRunner) ? st.targetRunner : 'gemini';
 
       const name = M.name ? hv(M.name) : (val('app') ? v('app') : 'ProductDemo');
       const promise = M.oneliner ? hv(M.oneliner) : (B.pitch ? hv(B.pitch) : 'Solve the problem in one tap');
@@ -2538,7 +2557,39 @@ Zero build tools, zero npm packages, and zero external JS libraries required. It
 Follow the Ponytail Senior Dev doctrine: shortest working diff, native browser APIs, localStorage persistence, and mobile-first touch ergonomics.
 </system_role>
 
-<application_overview>
+` + (runner === 'claude' ? `<target_ai_runner name="Anthropic Claude 3.5 Sonnet Artifact">
+- Output Format: Wrap entire code inside a single self-contained \`\`\`html ... \`\`\` Artifact block.
+- Aesthetic Finish: Editorial typography, subtle ambient dark-mode surface gradients, SVG micro-icons, and instant mobile touch feedback.
+- Architecture: Self-contained interactive single-file web application with local state persistence and zero external CDN flakiness.
+</target_ai_runner>` : (runner === 'v0' ? `<target_ai_runner name="v0.dev / Bolt.new (React + Tailwind)">
+- Output Format: Modern React component architecture with Tailwind CSS utility classes and Lucide React icons.
+- Component Tree: Split into modular sections (Header, AppShell, CoreActionForm, AIResultCards, MetricStats).
+- State: React hooks (useState, useEffect, useMemo) with simulated asynchronous API latency and localStorage persistence.
+</target_ai_runner>` : (runner === 'chatgpt' ? `<target_ai_runner name="ChatGPT Canvas (GPT-4o)">
+- Output Format: Single-file complete HTML/CSS/JS application with interactive state inspection hooks.
+- Resilience: Form input sanitization, inline error boundary, and step-by-step interactive walkthrough mode.
+</target_ai_runner>` : `<target_ai_runner name="Google AI Studio (Gemini 1.5 Pro / Flash)">
+- Output Format: 100% complete, un-truncated single-file HTML5/CSS3/ES6+ web application.
+- Structured AI Schema: Direct REST API integration with response_mime_type: "application/json".
+- Offline Heuristic: Mandatory simulateAiResponse(input) fallback when no key is entered or network is offline.
+</target_ai_runner>`))) + `\n\n<design_system_and_aesthetic_tokens>
+1. CSS Custom Properties (:root):
+   --bg: #090d16;
+   --surface: #111827;
+   --surface-hover: #1e293b;
+   --primary: #6366f1;
+   --primary-hover: #4f46e5;
+   --accent: #10b981;
+   --text: #f9fafb;
+   --text-muted: #94a3b8;
+   --border: rgba(255, 255, 255, 0.08);
+   --radius: 12px;
+2. Visual Differentiation Anchor:
+   - High-contrast visual hierarchy; cards feature a 1px glass border sheen (rgba(255, 255, 255, 0.08)).
+   - Tactile feedback: buttons and cards smoothly lift on hover (transform: translateY(-2px); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1)) and compress on active (:active { transform: scale(0.98); }).
+   - Empty States: Every list or data view must display an informative empty state illustration/icon with an actionable call-to-action button when zero items exist.
+   - Global Error Boundary: Wrap app initialization in window.addEventListener('error') and window.addEventListener('unhandledrejection') rendering a non-intrusive floating recovery card ("Something went wrong. [Reset App Data]") instead of freezing to a blank screen.
+</design_system_and_aesthetic_tokens>\n\n<application_overview>
 - App Name: ${name}
 - Headline: ${promise}
 - Target Problem: ${R.problem ? hv(R.problem) : v('problem', '[ENTER PROBLEM]')}
@@ -2692,6 +2743,79 @@ function build() {
           </ol>
           <div class="mom-kill-rule">
             <b>🛑 Falsifiable Kill Criteria:</b> ${esc(mom.killRule)}
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // Station 3: Pricing Ladder & Revenue Simulator
+    if (p.id === 'business') {
+      moduleHtml = `
+      <div class="sub-module">
+        <div class="module-header">
+          <span>💰 3-Tier Indian Pricing Ladder &amp; Revenue Projection</span>
+          <span class="badge" style="background:var(--biz-t);color:var(--biz)">GTM Engine</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:8px;margin-top:8px;">
+          <div style="background:var(--surface);border:1px solid var(--soft);border-radius:var(--radius-sm);padding:8px 10px;text-align:center;">
+            <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;">1. Discovery Tier</span>
+            <div style="font-size:18px;font-weight:800;color:var(--ink);margin:4px 0;">₹0</div>
+            <p style="font-size:11px;color:var(--muted);margin:0;">Zero-friction viral hook</p>
+          </div>
+          <div style="background:var(--surface);border:1.5px solid var(--biz);border-radius:var(--radius-sm);padding:8px 10px;text-align:center;">
+            <span style="font-size:11px;font-weight:700;color:var(--biz);text-transform:uppercase;">2. Pro / Solo</span>
+            <div style="font-size:18px;font-weight:800;color:var(--ink);margin:4px 0;">₹${u.mrp}<span style="font-size:11px;color:var(--muted);">/mo</span></div>
+            <p style="font-size:11px;color:var(--muted);margin:0;">UPI sweet spot</p>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--soft);border-radius:var(--radius-sm);padding:8px 10px;text-align:center;">
+            <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;">3. Institutional</span>
+            <div style="font-size:18px;font-weight:800;color:var(--ink);margin:4px 0;">₹${u.mrp * 6}<span style="font-size:11px;color:var(--muted);">/mo</span></div>
+            <p style="font-size:11px;color:var(--muted);margin:0;">Hostels &amp; colleges</p>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:12px;color:var(--muted);background:var(--surface-2);padding:6px 10px;border-radius:var(--radius-sm);">
+          <span>MRR @ 500 Pro Users: <b>₹${(u.mrp * 500).toLocaleString('en-IN')}</b></span>
+          <span>Estimated Gross Margin: <b>${u.grossMarginPct.toFixed(1)}%</b></span>
+        </div>
+      </div>`;
+    }
+
+    // Station 5: AI Model Runner & Architecture Target
+    if (p.id === 'master') {
+      const runner = st.targetRunner || 'gemini';
+      const R = good('research');
+      const S = good('shark');
+      const B = good('business');
+      const M = good('mvp');
+      const readyPct = [R, S, B, M].filter(Boolean).length * 25;
+
+      moduleHtml = `
+      <div class="sub-module">
+        <div class="module-header">
+          <span>🎯 AI Model Runner &amp; Architecture Target</span>
+          <span class="badge" style="background:var(--build-t);color:var(--build)">Perfection v3.3</span>
+        </div>
+        <div class="scenario-bar" role="group" aria-label="Target AI Model Runner">
+          <span style="font-size:12px;font-weight:700;color:var(--muted);">Target Runner:</span>
+          <button type="button" class="scen-btn ${runner==='gemini'?'active':''}" data-runner="gemini">🟣 Google AI Studio</button>
+          <button type="button" class="scen-btn ${runner==='claude'?'active':''}" data-runner="claude">🟠 Claude 3.5 Artifact</button>
+          <button type="button" class="scen-btn ${runner==='v0'?'active':''}" data-runner="v0">⚡ v0.dev / Bolt</button>
+          <button type="button" class="scen-btn ${runner==='chatgpt'?'active':''}" data-runner="chatgpt">🟢 ChatGPT Canvas</button>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+          <a href="https://aistudio.google.com/prompts/new_chat" target="_blank" rel="noopener noreferrer" class="btn-sm" style="display:inline-flex;align-items:center;gap:4px;text-decoration:none;">🚀 Open AI Studio &nearr;</a>
+          <a href="https://claude.ai/new" target="_blank" rel="noopener noreferrer" class="btn-sm" style="display:inline-flex;align-items:center;gap:4px;text-decoration:none;">🚀 Open Claude.ai &nearr;</a>
+          <a href="https://v0.dev" target="_blank" rel="noopener noreferrer" class="btn-sm" style="display:inline-flex;align-items:center;gap:4px;text-decoration:none;">🚀 Open v0.dev &nearr;</a>
+          <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" class="btn-sm" style="display:inline-flex;align-items:center;gap:4px;text-decoration:none;">🚀 Open ChatGPT &nearr;</a>
+        </div>
+
+        <div style="margin-top:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--soft);border-radius:var(--radius-sm);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:12px;">
+          <div>
+            <b>Prompt Synthesis Readiness:</b> <span style="color:${readyPct===100?'var(--green)':'var(--gold)'};font-weight:800;">${readyPct}%</span> (${readyPct===100?'All 4 Stations Synthesized':'Default Assumptions Applied for Unfinished Stations'})
+          </div>
+          <div style="color:var(--muted)">
+            ${R?'✓ P1 ':'✕ P1 '}${S?'✓ P2 ':'✕ P2 '}${B?'✓ P3 ':'✕ P3 '}${M?'✓ P4 ':'✕ P4 '}
           </div>
         </div>
       </div>`;
@@ -3419,6 +3543,14 @@ document.addEventListener('click', async e => {
     build();
     render();
     toast('Scenario: ' + SCEN_FACTORS[st.finScenario].name);
+  }
+  // Target AI Runner Toggle
+  else if (b.dataset.runner !== undefined) {
+    st.targetRunner = b.dataset.runner;
+    save();
+    build();
+    render();
+    toast('Target AI Runner: ' + (b.textContent.trim()));
   }
   // Copy Mom Test Protocol
   else if (b.id === 'btnCopyMomTest') {

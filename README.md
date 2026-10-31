@@ -115,11 +115,19 @@ node "scratch/suite_6_workspaces_and_scenarios.js" # Multi-project workspaces, 3
 * **Suite 4 (Accessibility):** 5/5 PASSED (11/11 explicit label associations, ARIA landmarks, single h1)
 * **Suite 5 (End-to-End):** 6/6 PASSED (Sequential unlock, handoff processing, export/import roundtrip)
 * **Suite 6 (Workspaces & Scenarios):** 5/5 PASSED (Multi-project manifest, isolation, duplication, 3-scenario sensitivity, Mom Test)
-* **Total: 30/30 Automated Tests Passing (100% Pass Rate)**
+* **Suite 7 (Runner Architecture & Tokens):** 5/5 PASSED (XML tags, CSS custom properties, multi-runner switching, error boundary)
+* **Total: 35/35 Automated Tests Passing (100% Pass Rate)**
 
 ---
 
 ## 📜 Changelog
+
+### v3.3.0 (Target AI Runner & Aesthetic Design System)
+* **Multi-Model Target AI Runner Switcher**: Dynamically adapts the master build prompt for **Google AI Studio (Gemini 1.5 Pro/Flash)**, **Claude 3.5 Sonnet Artifacts**, **v0.dev / Bolt.new (React + Tailwind)**, and **ChatGPT Canvas (GPT-4o)** with 1-click external launch buttons.
+* **Design System & CSS Token Specification**: Injects explicit CSS variable tokens (`--bg`, `--surface`, `--primary`, `--border`, `--radius`), visual differentiation anchors (glass sheen, tactile hover lifts), empty-state illustrations, and global error boundaries (`window.onerror`) into generated applications.
+* **Station 3 XML Upgrade & GTM Revenue Simulator**: Formats Station 3 with XML tags (`<user_vs_buyer_bifurcation>`, `<inr_3_tier_pricing_ladder>`, `<zero_dollar_gtm_distribution_playbook>`, `<the_60sec_investor_pitch>`) and interactive 3-tier pricing cards with live MRR calculation.
+* **Live Prompt Synthesis Readiness Meter**: Visual percentage indicator in Station 5 showing exact upstream station completion and synthesis state.
+* **Added Test Suite 7**: 5 automated tests validating multi-runner prompt tuning, design tokens, and pricing tags.
 
 ### v3.2.0 (Prompt Perfection Engine)
 * **XML-Framed Structural Prompt Architecture**: Encases prompts in semantic XML tags (`<system_role>`, `<sector_state_machine_schema>`, `<integrated_gemini_ai_schema>`, `<embedded_in_app_self_tests>`, `<negative_constraints_and_zero_truncation>`) to eliminate instruction degradation in LLMs.
