@@ -1125,6 +1125,138 @@ footer {
   #team { position: static; }
 }
 
+
+.workspace-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--soft);
+}
+.proj-select {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  max-width: 160px;
+  text-overflow: ellipsis;
+}
+.tool-btn-sm {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--soft);
+  color: var(--ink);
+  cursor: pointer;
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all .15s ease;
+}
+.tool-btn-sm:hover {
+  border-color: var(--ink);
+  background: var(--surface-3);
+  transform: translateY(-1px);
+}
+.mom-test-box {
+  margin-top: 14px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--soft);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mom-test-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 13.5px;
+}
+.mom-questions-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+.mom-kill-rule {
+  background: var(--shark-t);
+  border: 1px solid var(--shark);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: var(--ink);
+  line-height: 1.4;
+}
+.scenario-bar {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0 8px 0;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.scen-btn {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1.5px solid var(--soft);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.scen-btn:hover { border-color: var(--ink); color: var(--ink); }
+.scen-btn.active {
+  background: var(--ink);
+  color: var(--surface);
+  border-color: var(--ink);
+}
+.sensitivity-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 10px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--soft);
+}
+.sensitivity-table th, .sensitivity-table td {
+  padding: 6px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--soft);
+}
+.sensitivity-table th:first-child, .sensitivity-table td:first-child {
+  text-align: left;
+}
+.sensitivity-table th {
+  background: var(--surface-2);
+  color: var(--muted);
+  font-weight: 700;
+}
+.sensitivity-table tr.highlight-row {
+  background: var(--blue-t);
+  font-weight: 700;
+}
+
 @media (max-width: 768px) {
   body {
     padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
@@ -1275,6 +1407,15 @@ footer {
         <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Team-Auralis Logo" style="display:none;">
       </div>
       <span class="brand-subtitle" id="brandSub">Startup Cockpit</span>
+    </div>
+
+    
+    <div class="workspace-bar" title="Venture Workspace Switcher">
+      <span aria-hidden="true">💡</span>
+      <select id="projectSelect" class="proj-select" aria-label="Select Venture Project"></select>
+      <button type="button" class="tool-btn-sm" id="btnNewProject" title="Create New Venture Idea">＋ New</button>
+      <button type="button" class="tool-btn-sm" id="btnDupProject" title="Duplicate Current Venture Idea">📋 Copy</button>
+      <button type="button" class="tool-btn-sm" id="btnDelProject" title="Delete Current Venture Idea">🗑️</button>
     </div>
 
     <div class="top-tools">
@@ -1457,6 +1598,9 @@ const F_KEYS = ['team', 'app', 'sector', 'problem', 'idea', 'ai', 'mrp', 'cogs',
 // Highlighting Tokens for Previews
 const H1 = '', H2 = '', M1 = '', M2 = '', T1 = '', T2 = '';
 
+const WORKSPACE_MANIFEST_KEY = 'auralis_workspace_manifest';
+const STORAGE_PREFIX = 'auralis_proj_';
+
 let st = {
   vals: { ...EX },
   research: '',
@@ -1471,6 +1615,8 @@ let st = {
   theme: 'light',
   lang: 'en',
   activeShark: 0,
+  finScenario: 'base',
+  activeProjectId: 'proj_default',
   bloatChecks: { auth: false, db: false, micro: false, native: false, vector: false, rbac: false }
 };
 
@@ -1491,9 +1637,171 @@ const numVal = (k, def) => {
 };
 
 // Clean Storage Load & Save
+
+function getWorkspaceManifest() {
+  try {
+    const raw = localStorage.getItem(WORKSPACE_MANIFEST_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+}
+
+function saveWorkspaceManifest(m) {
+  try {
+    localStorage.setItem(WORKSPACE_MANIFEST_KEY, JSON.stringify(m));
+  } catch (e) {}
+}
+
+function initWorkspaces() {
+  let m = getWorkspaceManifest();
+  if (!m || !m.projects || !m.projects.length) {
+    let initialData = null;
+    try {
+      const leg = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (leg) initialData = JSON.parse(leg);
+    } catch (e) {}
+
+    const defaultId = 'proj_default';
+    const appName = (initialData && initialData.vals && initialData.vals.app) ? initialData.vals.app : 'MessMate';
+    m = {
+      activeId: defaultId,
+      projects: [
+        { id: defaultId, name: appName, updatedAt: Date.now() }
+      ]
+    };
+    saveWorkspaceManifest(m);
+    if (initialData) {
+      try { localStorage.setItem(STORAGE_PREFIX + defaultId, JSON.stringify(initialData)); } catch(e) {}
+    }
+  }
+  return m;
+}
+
+function renderWorkspaceDropdown() {
+  const sel = $('#projectSelect');
+  if (!sel) return;
+  const m = getWorkspaceManifest() || initWorkspaces();
+  sel.innerHTML = m.projects.map(p => `<option value="${p.id}" ${p.id === m.activeId ? 'selected' : ''}>${esc(p.name || 'Untitled')}</option>`).join('');
+}
+
+function switchWorkspace(id) {
+  save(); // save current project
+  const m = getWorkspaceManifest() || initWorkspaces();
+  m.activeId = id;
+  saveWorkspaceManifest(m);
+  st.activeProjectId = id;
+  load();
+  build();
+  fillForm();
+  render();
+  setTab(st.tab || 'team', false);
+  renderWorkspaceDropdown();
+  toast('Switched to: ' + (st.vals.app || 'Project'));
+}
+
+function createWorkspace(customName) {
+  save();
+  const m = getWorkspaceManifest() || initWorkspaces();
+  const newId = 'proj_' + Date.now();
+  const name = customName || 'Idea ' + (m.projects.length + 1);
+  m.projects.push({ id: newId, name, updatedAt: Date.now() });
+  m.activeId = newId;
+  saveWorkspaceManifest(m);
+
+  // Initialize fresh clean project
+  st = {
+    vals: {
+      team: 'New Venture Team',
+      app: name,
+      sector: 'saas',
+      problem: '',
+      idea: '',
+      ai: '',
+      mrp: 299,
+      cogs: 45,
+      ship: 0,
+      cac: 100,
+      notes: ''
+    },
+    research: '',
+    shark: '',
+    business: '',
+    mvp: '',
+    rawHandoffs: {},
+    approvedFields: {},
+    checks: {},
+    example: false,
+    tab: 'team',
+    theme: st.theme || 'light',
+    lang: st.lang || 'en',
+    activeShark: 0,
+    finScenario: 'base',
+    activeProjectId: newId,
+    bloatChecks: { auth: false, db: false, micro: false, native: false, vector: false, rbac: false }
+  };
+  save();
+  build();
+  fillForm();
+  render();
+  setTab('team', false);
+  renderWorkspaceDropdown();
+  toast('New Venture Idea created: ' + name);
+}
+
+function duplicateWorkspace() {
+  save();
+  const m = getWorkspaceManifest() || initWorkspaces();
+  const newId = 'proj_' + Date.now();
+  const curName = st.vals.app || 'Venture';
+  const newName = curName + ' (Copy)';
+  m.projects.push({ id: newId, name: newName, updatedAt: Date.now() });
+  m.activeId = newId;
+  saveWorkspaceManifest(m);
+
+  st.activeProjectId = newId;
+  st.vals.app = newName;
+  save();
+  build();
+  fillForm();
+  render();
+  renderWorkspaceDropdown();
+  toast('Duplicated: ' + newName);
+}
+
+function deleteWorkspace() {
+  const m = getWorkspaceManifest() || initWorkspaces();
+  if (m.projects.length <= 1) {
+    if (confirm('Only 1 project remaining. Reset it to blank?')) {
+      resetProject();
+      toast('Project reset to blank.');
+    }
+    return;
+  }
+  const curId = m.activeId;
+  const curName = st.vals.app || 'this project';
+  if (!confirm('Are you sure you want to delete "' + curName + '"?')) return;
+
+  try { localStorage.removeItem(STORAGE_PREFIX + curId); } catch(e) {}
+  m.projects = m.projects.filter(p => p.id !== curId);
+  m.activeId = m.projects[0].id;
+  saveWorkspaceManifest(m);
+
+  st.activeProjectId = m.activeId;
+  load();
+  build();
+  fillForm();
+  render();
+  setTab(st.tab || 'team', false);
+  renderWorkspaceDropdown();
+  toast('Project deleted.');
+}
+
 const load = () => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+    const m = initWorkspaces();
+    st.activeProjectId = m.activeId || 'proj_default';
+    const key = STORAGE_PREFIX + st.activeProjectId;
+    const raw = localStorage.getItem(key) || localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
     if (raw) {
       const s = JSON.parse(raw);
       if (s && s.vals && typeof s.vals === 'object') {
@@ -1501,6 +1809,7 @@ const load = () => {
         if (!st.bloatChecks) st.bloatChecks = { auth: false, db: false, micro: false, native: false, vector: false, rbac: false };
         if (!st.rawHandoffs) st.rawHandoffs = {};
         if (!st.approvedFields) st.approvedFields = {};
+        if (!st.finScenario) st.finScenario = 'base';
       }
     }
   } catch (e) {
@@ -1511,7 +1820,26 @@ const load = () => {
 
 const save = () => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(st));
+    const key = STORAGE_PREFIX + (st.activeProjectId || 'proj_default');
+    const dataStr = JSON.stringify(st);
+    localStorage.setItem(key, dataStr);
+    localStorage.setItem(STORAGE_KEY, dataStr); // backward compatibility mirror
+
+    // Update name in workspace manifest
+    const m = getWorkspaceManifest();
+    if (m && m.projects) {
+      const p = m.projects.find(x => x.id === (st.activeProjectId || 'proj_default'));
+      if (p) {
+        const curName = st.vals.app || 'Untitled Idea';
+        if (p.name !== curName) {
+          p.name = curName;
+          p.updatedAt = Date.now();
+          saveWorkspaceManifest(m);
+          renderWorkspaceDropdown();
+        }
+      }
+    }
+
     const el = $('#storageStatus');
     if (el) el.textContent = st.lang === 'te' ? 'సేవ్ చేయబడింది ✓' : 'Saved locally';
   } catch (e) {
@@ -1570,15 +1898,50 @@ const SECTOR_DEFS = {
   }
 };
 
-function getUnitMath() {
+
+const SCEN_FACTORS = {
+  base: { name: 'Base Case (Nominal)', priceMult: 1.0, cacMult: 1.0, rtoMult: 1.0 },
+  bull: { name: 'Bull Case (+20% Price, -20% CAC)', priceMult: 1.20, cacMult: 0.80, rtoMult: 0.75 },
+  bear: { name: 'Stress / Bear (-20% Price, +35% CAC)', priceMult: 0.80, cacMult: 1.35, rtoMult: 1.40 }
+};
+
+function getMomTestProtocol() {
+  const p = (val('problem') || 'the target problem').slice(0, 90);
+  const a = val('app') || 'MessMate';
+  const s = (val('sector') || 'saas').toUpperCase();
+  const c = city();
+
+  const questions = [
+    `When was the last time you experienced: "${p}"? Walk me through what happened step-by-step.`,
+    `What specific workarounds, apps, spreadsheets, or physical solutions have you already tried in ${c}, and what did they cost?`,
+    `Why haven't the existing options or competitors worked for you? What was the deal-breaker?`,
+    `When this problem happened last week or month, what did it cost you in real money, lost productivity, or stress?`,
+    `Who else was involved in that decision, and whose sign-off is needed to approve a purchase or switch?`
+  ];
+
+  const killRule = `Stop or pivot if fewer than 6 out of 10 prospective ${s} users in ${c} report actively spending money or >2 hours/week trying to solve this manually in the last 60 days.`;
+
+  return { questions, killRule };
+}
+
+function getUnitMath(forcedScen) {
   const sector = val('sector') || 'saas';
   const cfg = SECTOR_DEFS[sector] || SECTOR_DEFS.retail;
-  const mrp = numVal('mrp', cfg.d[0]);
-  const cogs = numVal('cogs', cfg.d[1]);
-  const ship = numVal('ship', cfg.d[2]);
-  const cac = numVal('cac', cfg.d[3]);
+  const scenKey = forcedScen || st.finScenario || 'base';
+  const f = SCEN_FACTORS[scenKey] || SCEN_FACTORS.base;
+
+  const mrpNom = numVal('mrp', cfg.d[0]);
+  const cogsNom = numVal('cogs', cfg.d[1]);
+  const shipNom = numVal('ship', cfg.d[2]);
+  const cacNom = numVal('cac', cfg.d[3]);
+
+  const mrp = mrpNom * f.priceMult;
+  const cogs = cogsNom;
+  const ship = shipNom;
+  const cac = cacNom * f.cacMult;
+
   const oh = 15000 * (cfg.ohMult || 1);
-  const r = cfg.calc(mrp, cogs, ship, cac, oh);
+  const r = cfg.calc(mrp, cogs, ship, cac, oh, f.rtoMult);
 
   const res = {
     sector, mrp, cogs: r.overrideCogs !== undefined ? r.overrideCogs : cogs, ship, cac,
@@ -1592,6 +1955,15 @@ function getUnitMath() {
   if (r.payback !== undefined) res.paybackMonths = r.payback;
   return res;
 }
+
+function getSensitivityMatrix() {
+  return {
+    base: getUnitMath('base'),
+    bull: getUnitMath('bull'),
+    bear: getUnitMath('bear')
+  };
+}
+
 
 // 5 Indian Shark Personas with Sector Heuristics
 const SHARKS = [
@@ -1827,6 +2199,8 @@ const P = [
     gets: ['Pain severity score (1-10)', 'Who hurts the most', 'Why existing solutions fail in India', '3 exact interview questions for Vizag students', 'Riskiest assumption to test'],
     gen: () => {
       const ar = getAgentReachQueries();
+    const mom = getMomTestProtocol();
+    const scenMatrix = getSensitivityMatrix();
       return 'You are a senior user researcher and internet intelligence analyst using Agent Reach methodologies to help Indian student founders stress-test ideas.\n\n' +
 ctx() + '\n\n' +
 hd('AGENT REACH MULTI-PLATFORM RECONNAISSANCE') + '\n' +
@@ -2106,7 +2480,9 @@ const locked = i => {
 function build() {
   $('#stationsMount').innerHTML = P.map((p, i) => {
     const ar = getAgentReachQueries();
+    const mom = getMomTestProtocol();
     const u = getUnitMath();
+    const scenMatrix = getSensitivityMatrix();
     const promptStr = plain(p.gen());
     const est = estimateCost(promptStr);
 
@@ -2137,6 +2513,20 @@ function build() {
           <div class="reach-card">
             <div class="reach-card-head"><span>YouTube Harvester</span><button type="button" class="btn-sm" data-copycmd="youtube">Copy yt-dlp</button></div>
             <pre class="cmd-snippet">${esc(ar.youtube)}</pre>
+          </div>
+        </div>
+
+        <div class="mom-test-box">
+          <div class="mom-test-head">
+            <span>🎯 The Mom Test Customer Discovery Protocol</span>
+            <button type="button" class="btn-sm" id="btnCopyMomTest">Copy Mom Test Protocol</button>
+          </div>
+          <p style="font-size:12.5px;color:var(--muted)">Rob Fitzpatrick's standard: 100% past-tense questions. Never ask for opinions; ask what they already did and paid for.</p>
+          <ol class="mom-questions-list">
+            ${mom.questions.map(q => `<li>${esc(q)}</li>`).join('')}
+          </ol>
+          <div class="mom-kill-rule">
+            <b>🛑 Falsifiable Kill Criteria:</b> ${esc(mom.killRule)}
           </div>
         </div>
       </div>`;
@@ -2176,6 +2566,12 @@ function build() {
           <span>🧮 Hisaab’s Unit Economics Ledger (${u.sector.toUpperCase()})</span>
           <span class="badge" style="background:var(--biz-t);color:var(--biz)">Live Math</span>
         </div>
+        <div class="scenario-bar" role="group" aria-label="Financial Scenarios">
+          <span style="font-size:12px;font-weight:700;color:var(--muted);">Sensitivity:</span>
+          <button type="button" class="scen-btn ${(st.finScenario||'base') === 'base' ? 'active' : ''}" data-scen="base">📊 Base Case (Nominal)</button>
+          <button type="button" class="scen-btn ${st.finScenario === 'bull' ? 'active' : ''}" data-scen="bull">🚀 Bull (+20% Price, -20% CAC)</button>
+          <button type="button" class="scen-btn ${st.finScenario === 'bear' ? 'active' : ''}" data-scen="bear">⚠️ Stress / Bear (-20% Price, +35% CAC)</button>
+        </div>
         <div class="ledger-grid">
           <label><span class="lt">${u.lbl1}</span><input type="number" id="calc-mrp" value="${u.mrp}"></label>
           <label><span class="lt">${u.lbl2}</span><input type="number" id="calc-cogs" value="${u.cogs}"></label>
@@ -2190,7 +2586,46 @@ function build() {
           <div class="kpi-cell"><span class="kpi-val ${u.cm3 > 0 ? 'good' : 'bad'}">${u.sector === 'saas' ? u.paybackMonths + ' mo' : '₹' + u.cm3.toFixed(0)}</span><span class="kpi-lbl">${u.kpi3Label}</span></div>
           <div class="kpi-cell"><span class="kpi-val ${u.breakEvenUnits !== Infinity ? '' : 'bad'}">${u.breakEvenUnits !== Infinity ? '~' + u.breakEvenUnits : 'Loss-making'}</span><span class="kpi-lbl">${u.kpi4Label}</span></div>
         </div>
-        <p style="font-size:11.5px;color:var(--muted);margin-top:2px;">* Assumes ₹15,000/month baseline overhead (domain, Gemini API budget, founder living expenses).</p>
+
+        <table class="sensitivity-table" aria-label="3-Scenario Sensitivity Comparison">
+          <thead>
+            <tr>
+              <th>Scenario</th>
+              <th>Unit Price</th>
+              <th>${u.kpi1Label}</th>
+              <th>${u.kpi2Label}</th>
+              <th>${u.kpi3Label}</th>
+              <th>${u.kpi4Label}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="${(st.finScenario||'base') === 'base' ? 'highlight-row' : ''}">
+              <td><b>Base Case</b></td>
+              <td>₹${scenMatrix.base.mrp.toFixed(0)}</td>
+              <td>₹${scenMatrix.base.cm1.toFixed(0)}</td>
+              <td>₹${scenMatrix.base.cm2.toFixed(0)}</td>
+              <td>${u.sector === 'saas' ? scenMatrix.base.paybackMonths + ' mo' : '₹' + scenMatrix.base.cm3.toFixed(0)}</td>
+              <td>${scenMatrix.base.breakEvenUnits !== Infinity ? '~' + scenMatrix.base.breakEvenUnits : 'Loss'}</td>
+            </tr>
+            <tr class="${st.finScenario === 'bull' ? 'highlight-row' : ''}">
+              <td><b>🚀 Bull Case</b></td>
+              <td>₹${scenMatrix.bull.mrp.toFixed(0)}</td>
+              <td>₹${scenMatrix.bull.cm1.toFixed(0)}</td>
+              <td>₹${scenMatrix.bull.cm2.toFixed(0)}</td>
+              <td>${u.sector === 'saas' ? scenMatrix.bull.paybackMonths + ' mo' : '₹' + scenMatrix.bull.cm3.toFixed(0)}</td>
+              <td>${scenMatrix.bull.breakEvenUnits !== Infinity ? '~' + scenMatrix.bull.breakEvenUnits : 'Loss'}</td>
+            </tr>
+            <tr class="${st.finScenario === 'bear' ? 'highlight-row' : ''}">
+              <td><b>⚠️ Stress / Bear</b></td>
+              <td>₹${scenMatrix.bear.mrp.toFixed(0)}</td>
+              <td>₹${scenMatrix.bear.cm1.toFixed(0)}</td>
+              <td>₹${scenMatrix.bear.cm2.toFixed(0)}</td>
+              <td>${u.sector === 'saas' ? scenMatrix.bear.paybackMonths + ' mo' : '₹' + scenMatrix.bear.cm3.toFixed(0)}</td>
+              <td>${scenMatrix.bear.breakEvenUnits !== Infinity ? '~' + scenMatrix.bear.breakEvenUnits : 'Loss'}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size:11.5px;color:var(--muted);margin-top:4px;">* Assumes ₹15,000/month baseline overhead (domain, Gemini API budget, founder living expenses).</p>
       </div>`;
     }
 
@@ -2742,10 +3177,15 @@ function toggleLang() {
 // Initial Boot
 load();
 if (!TABS.includes(st.tab)) st.tab = 'team';
+renderWorkspaceDropdown();
 build();
 fillForm();
 render();
 setTab(st.tab, false);
+
+$('#projectSelect').addEventListener('change', e => {
+  if (e.target.value) switchWorkspace(e.target.value);
+});
 
 // Event Listeners: Auto-Save, Form Synchronization & Reactive Finance
 const handleDataChange = e => {
@@ -2806,6 +3246,36 @@ document.addEventListener('click', async e => {
     st.activeShark = +b.dataset.sharkidx;
     build();
     render();
+  }
+  // Scenario Toggle
+  else if (b.dataset.scen !== undefined) {
+    st.finScenario = b.dataset.scen;
+    save();
+    build();
+    render();
+    toast('Scenario: ' + SCEN_FACTORS[st.finScenario].name);
+  }
+  // Copy Mom Test Protocol
+  else if (b.id === 'btnCopyMomTest') {
+    const mom = getMomTestProtocol();
+    const txt = '=== THE MOM TEST CUSTOMER DISCOVERY PROTOCOL ===\n\n' +
+      'Rob Fitzpatrick\'s standard: 100% past-tense questions.\n\n' +
+      mom.questions.map((q, idx) => (idx + 1) + '. ' + q).join('\n\n') +
+      '\n\nFALSIFIABLE KILL CRITERIA:\n' + mom.killRule;
+    await copyText(txt, 'Mom Test Protocol');
+  }
+  // New Project
+  else if (b.id === 'btnNewProject') {
+    const name = prompt('Enter a name for the new venture idea:', 'Idea ' + ((getWorkspaceManifest()?.projects.length || 0) + 1));
+    if (name) createWorkspace(name);
+  }
+  // Duplicate Project
+  else if (b.id === 'btnDupProject') {
+    duplicateWorkspace();
+  }
+  // Delete Project
+  else if (b.id === 'btnDelProject') {
+    deleteWorkspace();
   }
   // Copy Station Prompt
   else if (b.dataset.copy !== undefined) {

@@ -105,6 +105,7 @@ node "scratch/suite_2_pipeline_integration.js" # Station context flow, handoff p
 node "scratch/suite_3_security_xss.js"        # CSP, XSS entity escaping, and safe JSON import
 node "scratch/suite_4_accessibility_wcag.js"  # WCAG 2.1 AA form label bindings & ARIA landmarks
 node "scratch/suite_5_e2e_journey.js"         # Full 5-station journey & export/import roundtrip
+node "scratch/suite_6_workspaces_and_scenarios.js" # Multi-project workspaces, 3-scenario sensitivity & Mom Test
 ```
 
 ### Test Results Summary:
@@ -113,12 +114,20 @@ node "scratch/suite_5_e2e_journey.js"         # Full 5-station journey & export/
 * **Suite 3 (Security & XSS):** 4/4 PASSED (Strict CSP, entity escaping, safe JSON import, textContent toast)
 * **Suite 4 (Accessibility):** 5/5 PASSED (11/11 explicit label associations, ARIA landmarks, single h1)
 * **Suite 5 (End-to-End):** 6/6 PASSED (Sequential unlock, handoff processing, export/import roundtrip)
+* **Suite 6 (Workspaces & Scenarios):** 5/5 PASSED (Multi-project manifest, isolation, duplication, 3-scenario sensitivity, Mom Test)
+* **Total: 30/30 Automated Tests Passing (100% Pass Rate)**
 
 ---
 
 ## 📜 Changelog
 
-### v3.0.0 (Current Release)
+### v3.1.0 (Current Release)
+* **Multi-Project Workspace Switcher**: Save, switch, duplicate, and delete multiple startup ideas in browser localStorage without data collisions.
+* **3-Scenario Financial Sensitivity Engine**: Instant toggling between Base Case (nominal), Bull Case (+20% price, -20% CAC), and Stress/Bear Case (-20% price, +35% CAC) with live sensitivity table.
+* **The Mom Test Discovery Protocol & Falsifiable Kill Criteria**: Generates 5 past-tense behavioral interview questions and explicit kill criteria in Station 1 to eliminate hypothetical opinion bias.
+* **Expanded Automated Test Suite**: Added Suite 6 for multi-project isolation and scenario sensitivity matrix validation.
+
+### v3.0.0
 * **Sector-Adaptive Financial Engine**: Added specialized unit economics calculators for D2C, SaaS, Marketplace, B2B, and Retail.
 * **Strict Security Hardening**: Added Content Security Policy (CSP), prototype-pollution protection in JSON imports, and entity escaping.
 * **Structured Handoff Engine**: Added visual deliverable status chips, raw AI text preservation, and user deliverable overrides.
