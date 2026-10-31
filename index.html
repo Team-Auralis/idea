@@ -4,8 +4,36 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: https://fonts.googleapis.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; connect-src 'self' https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com http://localhost:11434;">
-<meta name="description" content="Idea to App Prompt Kit - The 5-stage AI-assisted startup MVP development platform and stress-tester.">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="description" content="Idea to App Prompt Kit - The 5-stage AI-assisted startup MVP development platform, Agent Reach reconnaissance & Shark Panel stress-tester by Team-Auralis.">
 <title>Idea to App Prompt Kit · Startup MVP Platform &amp; Shark Panel · Team-Auralis</title>
+
+<!-- Favicons & Mobile Web App Manifest -->
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#121316">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Auralis Idea">
+
+<!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://team-auralis.github.io/idea/">
+<meta property="og:title" content="Idea to App Prompt Kit · Startup MVP Platform &amp; Shark Panel · Team-Auralis">
+<meta property="og:description" content="Turn raw startup ideas into battle-tested products: 16-platform reconnaissance, 5-Shark courtroom grilling, 3-scenario financial sensitivity, and Ponytail MVP bloat-slashing.">
+<meta property="og:image" content="https://team-auralis.github.io/idea/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="Team-Auralis Startup Cockpit">
+
+<!-- Twitter Cards -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://team-auralis.github.io/idea/">
+<meta name="twitter:title" content="Idea to App Prompt Kit · Team-Auralis">
+<meta name="twitter:description" content="5-stage AI startup MVP development platform &amp; Shark Panel stress-testing cockpit.">
+<meta name="twitter:image" content="https://team-auralis.github.io/idea/assets/og-image.png">
+
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Code:wght@400;700&display=swap">
 <style>
 /* CSS Tokens & High-Contrast Design System */
@@ -2698,7 +2726,7 @@ function build() {
 
         <div class="card-actions">
           <div class="meta-info">
-            <span>Paste into <a href="${p.where}" target="_blank" rel="noopener">${p.tool} &nearr;</a></span>
+            <span>Paste into <a href="${p.where}" target="_blank" rel="noopener noreferrer">${p.tool} &nearr;</a></span>
             <span><b>${p.time}</b></span>
             <span>By <b>${p.who}</b></span>
           </div>
@@ -2914,7 +2942,7 @@ function bbar() {
       <button type="button" class="bb-action-btn ${isDone ? 'done' : ''}" data-copy="${pIdx}">
         ${isLock ? '🔒 Station Locked' : (isDone ? 'Copy Again ✓' : (p.hand ? 'Copy Prompt ' + (pIdx+1) : 'Copy Master Build Prompt'))}
       </button>
-      <a href="${p.where}" target="_blank" rel="noopener" class="bb-tool-link" title="Open ${p.tool}">
+      <a href="${p.where}" target="_blank" rel="noopener noreferrer" class="bb-tool-link" title="Open ${p.tool}">
         Open ${linkName(p)} &nearr;
       </a>
       ${nextTab ? `<button type="button" class="bb-nav-btn" data-go="${nextTab}" title="Next">&rarr;</button>` : ''}
