@@ -1423,7 +1423,6 @@ footer {
 'use strict';
 
 const STORAGE_KEY = 'gdg_vizag_idea_cockpit_v3';
-const OLD_KEY = 'gdg_vizag_idea_cockpit_v2';
 
 const EX = {
   team: 'Byte Biryani',
@@ -1463,7 +1462,6 @@ let st = {
 
 // Utilities
 const $ = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
 const esc = s => (s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const val = k => (st.vals[k] || '').toString().trim();
 const v = (k, miss) => val(k) ? H1 + val(k) + H2 : M1 + miss + M2;
@@ -1481,7 +1479,7 @@ const numVal = (k, def) => {
 // Clean Storage Load & Save
 const load = () => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const s = JSON.parse(raw);
       if (s && s.vals && typeof s.vals === 'object') {
@@ -1508,139 +1506,77 @@ const save = () => {
   }
 };
 
-// Sector-Specific Financial Calculations (Phase 4 Mathematical Validation)
+// ponytail: table-driven sector financial config shrinks 134 lines to 44 lines
+const SECTOR_DEFS = {
+  d2c: {
+    d: [299, 45, 50, 100],
+    l: ['Selling Price (MRP ₹)', 'Landed COGS (₹)', 'Courier Shipping (₹)', 'Performance CAC (₹)'],
+    k: ['CM1 (Gross)', 'CM2 (Fulfilled)', 'CM3 (Net / Unit)', 'Breakeven Units'],
+    calc: (mrp, cogs, ship, cac, oh) => {
+      const gw = mrp * 0.02, rto = ship * 1.8 * 0.2, tot = ship + rto, cm1 = mrp - cogs, cm2 = cm1 - tot - gw, cm3 = cm2 - cac;
+      return { gateway: gw, rtoCostPerUnit: rto, totalLogistics: tot, cm1, cm2, cm3, be: cm3 > 0 ? Math.ceil(oh / cm3) : Infinity };
+    }
+  },
+  saas: {
+    d: [299, 45, 0, 100],
+    l: ['Monthly ARPU (₹)', 'Cloud / API Cost (₹)', 'Variable Gateway (₹)', 'Subscriber CAC (₹)'],
+    k: ['Gross Margin', 'Monthly CM2', 'CAC Payback', 'Breakeven Users'],
+    calc: (mrp, cogs, ship, cac, oh) => {
+      const gw = mrp * 0.02, cm1 = mrp - cogs, cm2 = cm1 - gw, cm3 = cm2 - cac;
+      return { gateway: gw, rtoCostPerUnit: 0, totalLogistics: 0, cm1, cm2, cm3, be: cm2 > 0 ? Math.ceil(oh / cm2) : Infinity, payback: cm2 > 0 ? (cac / cm2).toFixed(1) : Infinity };
+    }
+  },
+  marketplace: {
+    d: [299, 45, 0, 100],
+    l: ['Avg Order Value (₹)', 'Take Rate (%)', 'Delivery Subsidy (₹)', 'Blended CAC (₹)'],
+    k: ['Platform Take', 'Order CM2', 'Net Take / Order', 'Breakeven Orders'],
+    calc: (mrp, cogs, ship, cac, oh) => {
+      const tr = Math.min(100, cogs > 0 ? cogs : 15), take = mrp * (tr / 100), gw = mrp * 0.02, cm2 = take - ship - gw, cm3 = cm2 - cac;
+      return { gateway: gw, rtoCostPerUnit: 0, totalLogistics: ship, cm1: take, cm2, cm3, be: cm3 > 0 ? Math.ceil(oh / cm3) : Infinity, overrideCogs: tr };
+    }
+  },
+  b2b: {
+    d: [60000, 10000, 0, 18000],
+    l: ['Contract Value ACV (₹)', 'Onboarding COGS (₹)', 'Annual SLA/Support (₹)', 'Enterprise CAC (₹)'],
+    k: ['Gross Margin', 'Delivered Margin', 'Net Deal Margin', 'Breakeven Deals/Yr'],
+    ohMult: 12,
+    calc: (mrp, cogs, ship, cac, oh) => {
+      const cm1 = mrp - cogs, cm2 = cm1 - ship, cm3 = cm2 - cac;
+      return { gateway: 0, rtoCostPerUnit: 0, totalLogistics: ship, cm1, cm2, cm3, be: cm3 > 0 ? Math.ceil(oh / cm3) : Infinity, payback: cm2 > 0 ? ((cac / (cm2 / 12))).toFixed(1) : Infinity };
+    }
+  },
+  retail: {
+    d: [299, 45, 0, 100],
+    l: ['Retail Price MRP (₹)', 'BOM / Mfg Cost (₹)', 'Channel Margin (₹)', 'Trade CAC (₹)'],
+    k: ['BOM Margin', 'Wholesale CM2', 'Net Unit Margin', 'Breakeven Units'],
+    calc: (mrp, cogs, ship, cac, oh) => {
+      const cm1 = mrp - cogs, cm2 = cm1 - ship, cm3 = cm2 - cac;
+      return { gateway: 0, rtoCostPerUnit: 0, totalLogistics: ship, cm1, cm2, cm3, be: cm3 > 0 ? Math.ceil(oh / cm3) : Infinity };
+    }
+  }
+};
+
 function getUnitMath() {
   const sector = val('sector') || 'saas';
-  const mrp = numVal('mrp', sector === 'b2b' ? 60000 : 299);
-  const cogs = numVal('cogs', sector === 'b2b' ? 10000 : 45);
-  const ship = numVal('ship', sector === 'd2c' ? 50 : 0);
-  const cac = numVal('cac', sector === 'b2b' ? 18000 : 100);
+  const cfg = SECTOR_DEFS[sector] || SECTOR_DEFS.retail;
+  const mrp = numVal('mrp', cfg.d[0]);
+  const cogs = numVal('cogs', cfg.d[1]);
+  const ship = numVal('ship', cfg.d[2]);
+  const cac = numVal('cac', cfg.d[3]);
+  const oh = 15000 * (cfg.ohMult || 1);
+  const r = cfg.calc(mrp, cogs, ship, cac, oh);
 
-  const fixedMonthlyOverhead = 15000; // Baseline founder overhead (hosting, tools, API credits)
-
-  if (sector === 'd2c') {
-    const gateway = mrp * 0.02; // 2% Indian payment gateway standard
-    const rtoRate = 0.20; // 20% Indian D2C benchmark for COD/RTO failure
-    const reverseShipCost = ship * 0.80; // Return freight provision
-    const rtoCostPerUnit = (ship + reverseShipCost) * rtoRate;
-    const totalLogistics = ship + rtoCostPerUnit;
-
-    const cm1 = mrp - cogs;
-    const grossMarginPct = mrp > 0 ? (cm1 / mrp) * 100 : 0;
-    const cm2 = cm1 - totalLogistics - gateway;
-    const cm3 = cm2 - cac;
-    const netMarginPct = mrp > 0 ? (cm3 / mrp) * 100 : 0;
-    const breakEvenUnits = cm3 > 0 ? Math.ceil(fixedMonthlyOverhead / cm3) : Infinity;
-
-    return {
-      sector, mrp, cogs, ship, cac, gateway, rtoCostPerUnit, totalLogistics,
-      cm1, grossMarginPct, cm2, cm3, netMarginPct,
-      fixedMonthlyOverhead, breakEvenUnits,
-      lbl1: 'Selling Price (MRP ₹)',
-      lbl2: 'Landed COGS (₹)',
-      lbl3: 'Courier Shipping (₹)',
-      lbl4: 'Performance CAC (₹)',
-      kpi1Label: 'CM1 (Gross)',
-      kpi2Label: 'CM2 (Fulfilled)',
-      kpi3Label: 'CM3 (Net / Unit)',
-      kpi4Label: 'Breakeven Units'
-    };
-  } else if (sector === 'saas') {
-    const gateway = mrp * 0.02; // 2% payment gateway
-    const cm1 = mrp - cogs; // MRR minus Cloud/API COGS
-    const grossMarginPct = mrp > 0 ? (cm1 / mrp) * 100 : 0;
-    const cm2 = cm1 - gateway; // Net recurring cash flow / user / mo
-    const cm3 = cm2 - cac; // 1st Month net contribution
-    const netMarginPct = mrp > 0 ? (cm3 / mrp) * 100 : 0;
-    const paybackMonths = cm2 > 0 ? (cac / cm2).toFixed(1) : Infinity;
-    const breakEvenUnits = cm2 > 0 ? Math.ceil(fixedMonthlyOverhead / cm2) : Infinity;
-
-    return {
-      sector, mrp, cogs, ship, cac, gateway, rtoCostPerUnit: 0, totalLogistics: 0,
-      cm1, grossMarginPct, cm2, cm3, netMarginPct,
-      fixedMonthlyOverhead, breakEvenUnits, paybackMonths,
-      lbl1: 'Monthly ARPU (₹)',
-      lbl2: 'Cloud / API Cost (₹)',
-      lbl3: 'Variable Gateway (₹)',
-      lbl4: 'Subscriber CAC (₹)',
-      kpi1Label: 'Gross Margin',
-      kpi2Label: 'Monthly CM2',
-      kpi3Label: 'CAC Payback',
-      kpi4Label: 'Breakeven Users'
-    };
-  } else if (sector === 'marketplace') {
-    const aov = mrp;
-    const takeRate = Math.min(100, cogs > 0 ? cogs : 15); // e.g. 15% commission
-    const grossTake = aov * (takeRate / 100);
-    const gateway = aov * 0.02;
-    const cm1 = grossTake;
-    const grossMarginPct = aov > 0 ? (grossTake / aov) * 100 : 0;
-    const cm2 = grossTake - ship - gateway;
-    const cm3 = cm2 - cac;
-    const netMarginPct = aov > 0 ? (cm3 / aov) * 100 : 0;
-    const breakEvenUnits = cm3 > 0 ? Math.ceil(fixedMonthlyOverhead / cm3) : Infinity;
-
-    return {
-      sector, mrp: aov, cogs: takeRate, ship, cac, gateway, rtoCostPerUnit: 0, totalLogistics: ship,
-      cm1, grossMarginPct, cm2, cm3, netMarginPct,
-      fixedMonthlyOverhead, breakEvenUnits,
-      lbl1: 'Avg Order Value (₹)',
-      lbl2: 'Take Rate (%)',
-      lbl3: 'Delivery Subsidy (₹)',
-      lbl4: 'Blended CAC (₹)',
-      kpi1Label: 'Platform Take',
-      kpi2Label: 'Order CM2',
-      kpi3Label: 'Net Take / Order',
-      kpi4Label: 'Breakeven Orders'
-    };
-  } else if (sector === 'b2b') {
-    const acv = mrp;
-    const cm1 = acv - cogs; // ACV minus implementation/onboarding
-    const grossMarginPct = acv > 0 ? (cm1 / acv) * 100 : 0;
-    const cm2 = cm1 - ship; // minus annual support/SLA
-    const cm3 = cm2 - cac; // minus enterprise sales CAC
-    const netMarginPct = acv > 0 ? (cm3 / acv) * 100 : 0;
-    const annualFixed = fixedMonthlyOverhead * 12;
-    const breakEvenUnits = cm3 > 0 ? Math.ceil(annualFixed / cm3) : Infinity;
-    const paybackMonths = cm2 > 0 ? ((cac / (cm2 / 12))).toFixed(1) : Infinity;
-
-    return {
-      sector, mrp: acv, cogs, ship, cac, gateway: 0, rtoCostPerUnit: 0, totalLogistics: ship,
-      cm1, grossMarginPct, cm2, cm3, netMarginPct,
-      fixedMonthlyOverhead: annualFixed, breakEvenUnits, paybackMonths,
-      lbl1: 'Contract Value ACV (₹)',
-      lbl2: 'Onboarding COGS (₹)',
-      lbl3: 'Annual SLA/Support (₹)',
-      lbl4: 'Enterprise CAC (₹)',
-      kpi1Label: 'Gross Margin',
-      kpi2Label: 'Delivered Margin',
-      kpi3Label: 'Net Deal Margin',
-      kpi4Label: 'Breakeven Deals/Yr'
-    };
-  } else {
-    // Offline Retail & Hardware
-    const retailPrice = mrp;
-    const cm1 = retailPrice - cogs; // Retail minus BOM
-    const grossMarginPct = retailPrice > 0 ? (cm1 / retailPrice) * 100 : 0;
-    const cm2 = cm1 - ship; // minus distributor channel margin & freight
-    const cm3 = cm2 - cac; // minus retail sampling/trade marketing
-    const netMarginPct = retailPrice > 0 ? (cm3 / retailPrice) * 100 : 0;
-    const breakEvenUnits = cm3 > 0 ? Math.ceil(fixedMonthlyOverhead / cm3) : Infinity;
-
-    return {
-      sector, mrp: retailPrice, cogs, ship, cac, gateway: 0, rtoCostPerUnit: 0, totalLogistics: ship,
-      cm1, grossMarginPct, cm2, cm3, netMarginPct,
-      fixedMonthlyOverhead, breakEvenUnits,
-      lbl1: 'Retail Price MRP (₹)',
-      lbl2: 'BOM / Mfg Cost (₹)',
-      lbl3: 'Channel Margin (₹)',
-      lbl4: 'Trade CAC (₹)',
-      kpi1Label: 'BOM Margin',
-      kpi2Label: 'Wholesale CM2',
-      kpi3Label: 'Net Unit Margin',
-      kpi4Label: 'Breakeven Units'
-    };
-  }
+  const res = {
+    sector, mrp, cogs: r.overrideCogs !== undefined ? r.overrideCogs : cogs, ship, cac,
+    gateway: r.gateway, rtoCostPerUnit: r.rtoCostPerUnit, totalLogistics: r.totalLogistics,
+    cm1: r.cm1, grossMarginPct: mrp > 0 ? (r.cm1 / mrp) * 100 : 0,
+    cm2: r.cm2, cm3: r.cm3, netMarginPct: mrp > 0 ? (r.cm3 / mrp) * 100 : 0,
+    fixedMonthlyOverhead: oh, breakEvenUnits: r.be,
+    lbl1: cfg.l[0], lbl2: cfg.l[1], lbl3: cfg.l[2], lbl4: cfg.l[3],
+    kpi1Label: cfg.k[0], kpi2Label: cfg.k[1], kpi3Label: cfg.k[2], kpi4Label: cfg.k[3]
+  };
+  if (r.payback !== undefined) res.paybackMonths = r.payback;
+  return res;
 }
 
 // 5 Indian Shark Personas with Sector Heuristics
@@ -2465,8 +2401,8 @@ async function copyText(text, label, extra = '') {
     toast((label || 'Prompt') + ' copied! ' + extra);
     return true;
   } else {
-    prompt('Could not access clipboard automatically. Press Ctrl+C / Cmd+C to copy:', text);
-    toast('Prompt text opened for manual copy');
+    // ponytail: avoid intrusive prompt() modal on clipboard failure
+    toast('Clipboard copy unavailable. Select text manually.');
     return false;
   }
 }
